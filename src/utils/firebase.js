@@ -1,7 +1,8 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import config from "../config/index.js";
 const firebaseConfig = {
-    databaseURL: "https://test-smi-a21cb-default-rtdb.europe-west1.firebasedatabase.app/"
+  databaseURL: config.database.url,
 };
 
 const app = initializeApp(firebaseConfig);

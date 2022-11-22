@@ -1,8 +1,8 @@
 import cors from "cors";
 import express from "express";
 import api from "./api/index.js";
+import config from "./config/index.js";
 const app = express();
-const port = 3000;
 
 app.use(cors());
 app.get("/", (req, res) => {
@@ -55,8 +55,7 @@ app.get("/article/:articleId", (req, res) => {
     .catch(() => {
       res.status(400).send({ error: "DocumentNotFound" });
     });
-  //res.send('Hello World!')
 });
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+app.listen(config.app.port, () => {
+  console.log(`Dashboard api listening on port ${config.app.port}`);
 });
