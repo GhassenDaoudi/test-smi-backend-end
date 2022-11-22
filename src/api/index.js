@@ -1,31 +1,7 @@
-import { get, ref } from "firebase/database";
-import { database } from "../utils/firebase.js";
-
-const brandsDB = ref(database, "brands");
-
-const getBrands = () =>
-  get(brandsDB).then((snapshot) => {
-    if (snapshot.exists()) {
-      return Object.values(snapshot.val());
-    } else {
-      throw new Error("No data available");
-    }
-  });
-
-const getPurchasesByOfferId = (offerId) => {
-  return get(ref(database, `conversions/purchasesPerBrands/${offerId}`)).then(
-    (snapshot) => {
-      if (snapshot.exists()) {
-        return Object.values(snapshot.val());
-      } else {
-        throw new Error("No data available");
-      }
-    }
-  );
-};
+import * as ShopMyInfluence from "../libs/ShopMyInfluence.js";
 
 const getBrandByOfferID = async (offerId) => {
-  const brands = await getBrands();
+  const brands = await ShopMyInfluence.getBrands();
   const brand = brands.find((brand) => brand.offerId === offerId);
   if (!brand) {
     throw new Error("Brand Not Found");
@@ -37,15 +13,33 @@ const getBrandByOfferID = async (offerId) => {
     displayName: brand.displayName,
   };
 };
+const getInfluencerById = async (influencerId) => {
+  const influencer = await ShopMyInfluence.getInfluencerById(influencerId);
+  return {
+    banner: influencer.banner,
+    createdAt: influencer.createdAt,
+    influencerId: influencer.influencerId,
+    name: influencer.name,
+  };
+};
+
+const getArticleById = async (articleId) => {
+  const article = await ShopMyInfluence.getArticleById(articleId);
+  return {
+    image: article.image,
+    offerId: article.offerId,
+    id: article.id,
+    uid: article.uid,
+  };
+};
 
 const getBrandStatsByOfferID = async (offerId) => {
-  const purchases = await getPurchasesByOfferId(offerId);
+  const purchases = await ShopMyInfluence.getPurchasesByOfferId(offerId);
   const stats = purchases.reduce(
     (acc, curr) => {
-      //influencers
       const newset = new Set(acc.influencersIDs);
       newset.add(curr.influencer);
-      //salesPerInfluencer
+
       const newInfluencerSales = { ...acc.influencerSales };
       if (newInfluencerSales[curr.influencer]) {
         newInfluencerSales[curr.influencer].push(curr);
@@ -53,7 +47,6 @@ const getBrandStatsByOfferID = async (offerId) => {
         newInfluencerSales[curr.influencer] = [curr];
       }
 
-      //salesPer country
       const newSalesPerCountry = { ...acc.salesPerCountry };
       if (curr.countryCode) {
         if (newSalesPerCountry[curr.countryCode]) {
@@ -115,48 +108,6 @@ const getBrandStatsByOfferID = async (offerId) => {
     influencer: stats.influencersIDs.size,
   };
 };
-
-const _getInfluencerById = (influencerId) => {
-  const query = ref(database, `influencers/${influencerId}`);
-  return get(query).then((snapshot) => {
-    if (snapshot.exists()) {
-      return snapshot.val();
-    } else {
-      throw new Error("No data available");
-    }
-  });
-};
-
-const getInfluencerById = async (influencerId) => {
-  const influencer = await _getInfluencerById(influencerId);
-  return {
-    banner: influencer.banner,
-    createdAt: influencer.createdAt,
-    influencerId: influencer.influencerId,
-    name: influencer.name,
-  };
-};
-
-const _getArticleById = (articleId) => {
-  const query = ref(database, `articles/${articleId}`);
-  return get(query).then((snapshot) => {
-    if (snapshot.exists()) {
-      return snapshot.val();
-    } else {
-      throw new Error("No data available");
-    }
-  });
-};
-const getArticleById = async (articleId) => {
-  const article = await _getArticleById(articleId);
-  return {
-    image: article.image,
-    offerId: article.offerId,
-    id: article.id,
-    uid: article.uid,
-  };
-};
-
 export default {
   getBrandByOfferID,
   getInfluencerById,
